@@ -30,5 +30,9 @@ if ingredients_list:
     st.success('Your Smoothie is ordered for ' + name_on_order + '!', icon="✅")
 
 import requests
-smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
-st.text(smoothiefroot_response)
+try:
+    response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon", timeout=20)
+    st.write("Status code:", response.status_code)
+    st.write(response.text)
+except requests.exceptions.RequestException as e:
+    st.error(f"API request failed: {e}")
