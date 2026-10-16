@@ -20,45 +20,22 @@ st.dataframe(pd_df)
 
 ingredients_list = st.multiselect("Choose up to 5 ingredients:", pd_df["FRUIT_NAME"].tolist(), max_selections=5)
 
-if ingredients_list:
-    ingredients_string = ""
-    for fruit_chosen in ingredients_list:
-        ingredients_string += fruit_chosen + " "
-        search_on = pd_df.loc[pd_df["FRUIT_NAME"] == fruit_chosen, "SEARCH_ON"].iloc[0]
-        st.write("The search value for", fruit_chosen, "is", search_on, ".")
-        st.subheader(fruit_chosen + " Nutrition Information")
-        smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/" + search_on, timeout=10)
-        if smoothiefroot_response.status_code == 200:
-            st.json(smoothiefroot_response.json())
-        else:
-            st.write("Nutrition information is currently unavailable.")
-
-    if st.button("Submit Order"):
-        if name_on_order.strip():
-            session.sql("INSERT INTO smoothies.public.orders (ingredients, name_on_order) VALUES (?, ?)", params=[ingredients_string.strip(), name_on_order]).collect()
-            st.success("Your Smoothie is ordered for " + name_on_order + "!", icon="✅")
-        else:
-            st.warning("Please enter your name before submitting.")
 
 if ingredients_list:
     ingredients_string = ''
-    
+
     for fruit_chosen in ingredients_list:
         ingredients_string += fruit_chosen + ' '
-
-        search_on=pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
-        st.write('The search value for ', fruit_chosen,' is ', search_on, '.')
-        
+        search_on = pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
+        st.write('The search value for', fruit_chosen, 'is', search_on, '.')
         st.subheader(fruit_chosen + ' Nutrition Information')
-        smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
-        sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
+        smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/" + search_on, timeout=10)
+        st.json(smoothiefroot_response.json())
 
-        
-
-    my_insert_stmt = """INSERT INTO smoothies.public.orders(ingredients, name_on_order) VALUES ('""" + ingredients_string + """', '""" + name_on_order + """')"""
-    # st.write(my_insert_stmt)
-    time_to_insert = st.button('Submit Order')
+    time_to_insert = st.button('Submit Order', key='submit_order')
 
     if time_to_insert:
-        session.sql(my_insert_stmt).collect()
+        my_insert_stmt = "INSERT INTO smoothies.public.orders(ingredients, name_on_order) VALUES (?, ?)"
+        session.sql(my_insert_stmt, params=[ingredients_string.strip(), name_on_order]).collect()
         st.success('Your Smoothie is ordered for ' + name_on_order + '!', icon="✅")
+
